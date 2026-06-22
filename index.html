@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="辨證">
+<meta name="theme-color" content="#0d0a07">
+<title>韓醫學 辨證·治則·治法 — 추론·시험 2모드</title>
+<style>
+  :root{
+    --bg:#0d0a07; --panel:#171109; --card:#1f160c; --cardh:#2a1d0f;
+    --ink:#ece2cf; --muted:#b6a585; --dim:#7d6f57;
+    --zhu:#cf4a2c; --bronze:#c9962e; --jade:#6cae8b; --warn:#d6a23a; --azure:#5b9bd5;
+    --line:#3a2c1a; --line2:#503c22; --sect:#9a7b3a;
+    --serif:"Nanum Myeongjo","Noto Serif KR","Batang",AppleMyungjo,"Apple SD Gothic Neo",serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif);
+    min-height:100vh; min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:auto;}
+  .bgglyph{position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:62vmin; color:#1c130a; z-index:0; pointer-events:none; user-select:none;
+    animation:breathe 9s ease-in-out infinite;}
+  @keyframes breathe{0%,100%{opacity:.5; transform:scale(1);}50%{opacity:.8; transform:scale(1.04);}}
+  .wrap{position:relative; z-index:1; max-width:980px; margin:0 auto; padding:18px 14px 92px;}
+  header{padding:6px 2px 12px; border-bottom:1px solid var(--line);}
+  .ttl{font-size:28px; font-weight:800; letter-spacing:2px;} .ttl .zhu{color:var(--zhu);}
+  .sub{font-size:12.5px; color:var(--muted); margin-top:5px; line-height:1.5;}
+  .modebar{display:flex; gap:8px; margin:13px 2px 2px;}
+  .modebtn{flex:1; padding:11px 10px; border:1px solid var(--line2); border-radius:12px;
+    background:var(--panel); color:var(--muted); font-size:15px; font-weight:800; cursor:pointer;
+    font-family:var(--serif); touch-action:manipulation; text-align:center; letter-spacing:1px;}
+  .modebtn .ms{display:block; font-size:10.5px; color:var(--dim); font-weight:600; letter-spacing:0; margin-top:2px;}
+  .modebtn.active{color:var(--ink); border-color:var(--bronze); background:linear-gradient(180deg,#241809,#1a1108);
+    box-shadow:0 0 0 1px rgba(201,150,46,.28);}
+  .modebtn.active.exam{border-color:var(--azure); box-shadow:0 0 0 1px rgba(91,155,213,.3);}
+  .tabs{display:flex; gap:7px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    touch-action:pan-x; padding:12px 2px 6px; margin-bottom:6px; scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex:0 0 auto; padding:9px 13px; border:1px solid var(--line2); border-radius:11px;
+    background:var(--panel); color:var(--muted); font-size:14px; font-weight:700; cursor:pointer;
+    white-space:nowrap; touch-action:manipulation;}
+  .tab .n{display:block; font-size:10px; color:var(--dim); font-weight:600; letter-spacing:1px;}
+  .tab.active{background:linear-gradient(180deg,#241809,#1a1108); color:var(--ink);
+    border-color:var(--bronze); box-shadow:0 0 0 1px rgba(201,150,46,.25);}
+  .tab.active.examtab{border-color:var(--azure); box-shadow:0 0 0 1px rgba(91,155,213,.25);}
+  .panel{display:none;} .panel.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);}to{opacity:1; transform:none;}}
+  .gtitle{font-size:18px; font-weight:800; margin:8px 2px 3px; color:var(--bronze);}
+  .ghint{font-size:12.5px; color:var(--muted); margin:0 2px 12px; line-height:1.55;}
+  .gprog{font-size:12px; color:var(--dim); margin:2px 2px 10px; letter-spacing:.5px;}
+  .board{min-height:160px;}
+  .connect-wrap{display:flex; gap:10px;}
+  .col{flex:1; display:flex; flex-direction:column; gap:8px;}
+  .col-h{font-size:11px; color:var(--dim); text-align:center; letter-spacing:2px; margin-bottom:2px;}
+  .card{border:1px solid var(--line2); background:var(--card); color:var(--ink);
+    border-radius:10px; padding:11px 12px; font-size:15px; line-height:1.45; cursor:pointer;
+    user-select:none; touch-action:manipulation; transition:background .12s, border-color .12s, transform .08s;}
+  .card .hz{font-weight:700;}
+  .card.sel{border-color:var(--bronze); background:var(--cardh); box-shadow:0 0 0 1px rgba(201,150,46,.4);}
+  .card.locked{border-color:var(--jade); background:rgba(108,174,139,.13); color:var(--jade); cursor:default;}
+  .card.flash{border-color:var(--zhu); background:rgba(207,74,44,.18); animation:shake .3s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+  .order-grid{display:flex; flex-wrap:wrap; gap:9px;}
+  .ocard{position:relative; flex:0 0 auto; max-width:100%; border:1px solid var(--line2); background:var(--card);
+    border-radius:10px; padding:11px 14px; font-size:15px; cursor:pointer; user-select:none; touch-action:manipulation;
+    transition:background .12s, border-color .12s;}
+  .ocard.locked{border-color:var(--jade); background:rgba(108,174,139,.13); color:var(--jade); cursor:default;}
+  .ocard.flash{border-color:var(--zhu); background:rgba(207,74,44,.18); animation:shake .3s;}
+  .ocard .ord{position:absolute; top:-9px; left:-9px; width:22px; height:22px; border-radius:50%;
+    background:var(--jade); color:#0d0a07; font-size:12px; font-weight:800; display:none;
+    align-items:center; justify-content:center;}
+  .ocard.locked .ord{display:flex;}
+  .pick-q{font-size:16px; line-height:1.6; margin:4px 2px 14px; color:var(--ink);}
+  .pick-q .hz{font-weight:700; color:var(--bronze);}
+  .pick-q b{color:var(--warn); font-weight:700;}
+  .opts{display:flex; flex-direction:column; gap:9px;}
+  .opt{border:1px solid var(--line2); background:var(--card); color:var(--ink);
+    border-radius:10px; padding:12px 14px; font-size:15.5px; cursor:pointer; text-align:left;
+    font-family:var(--serif); touch-action:manipulation; transition:background .12s, border-color .12s;}
+  .opt:disabled{cursor:default; opacity:.85;}
+  .opt.ok{border-color:var(--jade); background:rgba(108,174,139,.16); color:var(--jade);}
+  .opt.no{border-color:var(--zhu); background:rgba(207,74,44,.14); color:#e8907c; opacity:.7;}
+  .reveal{margin:14px 0 0; padding:12px 13px; border-left:3px solid var(--bronze);
+    background:rgba(201,150,46,.08); border-radius:0 8px 8px 0; font-size:13.5px; line-height:1.6;
+    color:var(--muted); display:none;}
+  .reveal.show{display:block; animation:fade .2s ease;} .reveal b{color:var(--ink);}
+  .nextbar{margin-top:16px; display:flex; justify-content:flex-end;}
+  .btn-next{display:none; padding:11px 20px; border:1px solid var(--bronze); border-radius:11px;
+    background:linear-gradient(180deg,#2a1c0b,#1c1208); color:var(--ink); font-size:15px; font-weight:800;
+    cursor:pointer; font-family:var(--serif); touch-action:manipulation;}
+  .btn-next.show{display:inline-block;} .btn-next:active{transform:scale(.97);}
+  .foot{position:fixed; left:0; right:0; bottom:0; z-index:2; background:rgba(13,10,7,.94);
+    border-top:1px solid var(--line); padding:9px 14px; backdrop-filter:blur(6px);
+    display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--dim);}
+  .foot .sc{color:var(--jade); font-weight:700;}
+  .kbd{border:1px solid var(--line2); border-radius:5px; padding:1px 6px; font-size:11px; color:var(--muted);}
+  @media (hover:hover){
+    .card:hover:not(.locked){background:var(--cardh); border-color:var(--bronze);}
+    .ocard:hover:not(.locked){background:var(--cardh); border-color:var(--bronze);}
+    .opt:hover:not(:disabled){background:var(--cardh); border-color:var(--bronze);}
+    .tab:hover{color:var(--ink);} .btn-next:hover{border-color:var(--zhu);} .modebtn:hover{color:var(--ink);}
+  }
+  @media (min-width:768px){
+    .wrap{padding:24px 20px 96px;} .ttl{font-size:32px;}
+    .card,.ocard{font-size:16px;} .opt{font-size:16.5px;} .gtitle{font-size:20px;}
+  }
+  @media (max-width:380px){ .connect-wrap{gap:7px;} .card{padding:10px 9px; font-size:13.5px;} }
+  /* === 약점 다이제스트 === */
+  .modebar{flex-wrap:wrap;}
+  .modebtn.digest{flex:1 0 100%; margin-top:3px; border-color:var(--line2); color:var(--jade);
+    background:linear-gradient(180deg,#11160f,#0e120c);}
+  .modebtn.digest .ms{color:#5c7d63;}
+  .modebtn.digest.active{border-color:var(--jade); color:var(--ink);
+    box-shadow:0 0 0 1px rgba(108,174,139,.3); background:linear-gradient(180deg,#13201a,#0f1712);}
+  .digest-view{animation:fade .25s ease;}
+  .dempty{color:var(--muted); font-size:14px; line-height:1.7; padding:18px 14px; border:1px dashed var(--line2);
+    border-radius:12px; margin-top:8px;} .dempty b{color:var(--jade);}
+  .dsum{font-size:14px; color:var(--muted); margin:2px 2px 14px; line-height:1.6;} .dsum b{color:var(--jade);}
+  .dh{font-size:12px; color:var(--sect); letter-spacing:2px; font-weight:700; margin:18px 2px 8px;
+    border-bottom:1px solid var(--line); padding-bottom:5px;}
+  .dbars{display:flex; flex-direction:column; gap:9px;}
+  .dbar-l{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;}
+  .dcat{font-size:14.5px; color:var(--ink); font-weight:700;}
+  .dnum{font-size:12px; color:var(--dim);}
+  .dbar-t{height:8px; border-radius:5px; background:#1c130a; overflow:hidden;}
+  .dbar-t i{display:block; height:100%; background:linear-gradient(90deg,var(--warn),var(--zhu)); border-radius:5px;}
+  .dqs{display:flex; flex-direction:column; gap:9px;}
+  .dq{border:1px solid var(--line2); background:var(--card); border-radius:11px; padding:11px 12px;}
+  .dq-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .dtag{font-size:11px; color:var(--bronze); border:1px solid var(--line2); border-radius:6px; padding:2px 7px; letter-spacing:.5px;}
+  .dmiss{font-size:12px; color:#e8907c; font-weight:700;}
+  .dq-q{font-size:14px; color:var(--ink); line-height:1.55; margin-bottom:6px;}
+  .dq-a{font-size:13px; color:var(--muted); line-height:1.5;}
+  .dq-a .bad{color:#e8907c;} .dq-a .good{color:var(--jade); font-weight:700;}
+  .dauto{font-size:13.5px; color:var(--muted); line-height:1.7; padding:12px 13px; border-left:3px solid var(--jade);
+    background:rgba(108,174,139,.07); border-radius:0 8px 8px 0;} .dauto b{color:var(--ink);}
+  .dbtns{display:flex; flex-wrap:wrap; gap:9px; margin:20px 0 6px;}
+  .dbtn{flex:1 1 auto; padding:12px 16px; border:1px solid var(--jade); border-radius:11px;
+    background:linear-gradient(180deg,#13201a,#0f1712); color:var(--ink); font-size:14.5px; font-weight:800;
+    cursor:pointer; font-family:var(--serif); touch-action:manipulation;}
+  .dbtn.ghost{border-color:var(--line2); color:var(--muted); background:var(--panel);}
+  .dbtn.warn{border-color:var(--line2); color:#cc9988; background:var(--panel);}
+  .dbtn:active{transform:scale(.98);}
+</style>
+</head>
+<body>
+<div class="bgglyph">證</div>
+<div class="wrap">
+  <header>
+    <div class="ttl">韓醫學 <span class="zhu">辨證·治則·治法</span></div>
+    <div class="sub" id="subline">진단 추론 흐름 + 시험 변별 — 2모드 10게임으로 證을 잡고 方을 고르는 훈련</div>
+    <div class="modebar" id="modebar"></div>
+  </header>
+  <nav class="tabs" id="tabs"></nav>
+  <main id="main"></main>
+</div>
+<div class="foot">
+  <span>모드/탭 전환 · 다음 <span class="kbd">Space</span></span>
+  <span class="sc" id="score">맞춤 0</span>
+</div>
+<script>
+(function(){
+"use strict";
+
+/* ============================ DATA · 추론 모드 (四診→八綱→臟腑→治則→處方) ============================ */
+
+// R1 · 四診 : 舌·脈으로 證 잡기
+var R1_SAJIN = [
+ ["<b>舌絳·苔少, 脈細數</b> — 衛氣營血 중 어느 분증인가?", "營分", ["衛分","氣分","營分","血分"], "熱入營分이면 舌色必絳(葉天士 溫熱論). 苔少·脈細數은 營陰 손상. 〔衛氣營血辨證圖表〕"],
+ ["<b>舌深絳, 發斑疹·神昏</b> — ?", "血分", ["氣分","營分","血分","衛分"], "舌深絳+發斑疹=血分(邪熱入血 耗血動血). 治=涼血散血(犀角地黃湯)."],
+ ["<b>舌紅·苔黃, 脈洪大·大渴</b> — ?", "氣分", ["衛分","氣分","營分","血分"], "舌紅苔黃·脈洪大·大熱大渴=氣分大熱(陽明經證). 治=辛寒淸氣(白虎湯)."],
+ ["<b>舌邊尖紅·苔薄白, 脈浮數</b> — ?", "衛分", ["衛分","氣分","營分","血分"], "苔薄白·舌邊尖紅·脈浮數=衛分(邪在衛表). 治=辛凉解表."],
+ ["<b>舌淡胖·苔白, 脈沈遲</b> — 寒熱 귀속은?", "裏寒", ["表寒","裏寒","裏熱","表熱"], "舌淡胖苔白·脈沈遲=裏寒(虛寒). 〔裏證 寒熱虛實 鑑別〕"],
+ ["<b>舌紅少苔, 脈細數, 五心煩熱</b> — ?", "陰虛(虛熱)", ["實熱","陰虛(虛熱)","實寒","氣虛"], "舌紅少苔·脈細數·五心煩熱=陰虛火旺(虛熱). 治=滋陰淸熱."],
+ ["<b>面色蒼白·舌淡, 脈芤</b>(大出血 후) — ?", "血虛", ["氣虛","血虛","陽虛","陰虛"], "面色蒼白·舌淡·脈細無力, 大出血後 芤脈=血虛. 〔血病辨證〕"]
+];
+
+// R2 · 八綱 귀속 : 증상 → 표리·한열·허실
+var R2_PALGANG = [
+ ["<b>壯熱·大汗·大渴, 脈洪大</b> — 八綱 귀속은?", "裏·熱·實", ["表·寒·實","裏·熱·實","裏·寒·虛","表·熱·虛"], "大熱大汗大渴脈洪大=陽明經證(裏熱實). 표리=裏, 한열=熱, 허실=實."],
+ ["<b>形寒肢冷·下利淸穀, 脈微</b> — ?", "裏·寒·虛", ["裏·熱·實","裏·寒·虛","表·寒·實","裏·寒·實"], "形寒肢冷·下利淸穀·脈微=虛寒. 〔寒熱의 虛實〕虛寒=陽氣虛衰 陰寒內盛."],
+ ["<b>惡寒發熱·頭痛, 無汗, 脈浮緊</b> — ?", "表·寒·實", ["表·寒·實","表·熱·虛","裏·寒·實","表·寒·虛"], "惡寒重·無汗·脈浮緊=表寒實(傷寒). 〔表證 寒熱虛實〕"],
+ ["<b>潮熱·盜汗·五心煩熱, 舌紅少苔</b> — ?", "裏·虛熱", ["裏·實熱","裏·虛熱","表·虛熱","裏·虛寒"], "潮熱盜汗五心煩熱·舌紅少苔=陰虛火旺(裏虛熱)."],
+ ["<b>惡寒重·發熱輕, 苔薄白潤, 脈浮緊</b> — 表寒/表熱?", "表寒", ["表寒","表熱","裏寒","半表半裏"], "惡寒重發熱輕·苔薄白潤·脈浮緊=表寒. (表熱=發熱重·苔薄白乾·舌邊尖紅·脈浮數)"],
+ ["<b>腹脹滿痛拒按·便秘, 脈沈實</b> — 虛/實?", "實(裏實)", ["虛(裏虛)","實(裏實)","虛寒","虛熱"], "脹滿痛拒按·便秘·脈沈實=裏實. (拒按=實, 喜按=虛)"],
+ ["<b>疲倦乏力·氣短·語聲低微, 食少便溏</b> — 虛/實?", "虛(裏虛)", ["實(裏實)","虛(裏虛)","實熱","表虛"], "乏力·氣短·聲低·食少便溏=裏虛. 〔虛證과 實證의 감별〕"]
+];
+
+// R3 · 臟腑·病性 정위 : 증상군 → 어느 臟
+var R3_JANGBU = [
+ ["<b>脇部脹痛·胸悶·善太息, 婦女乳房脹痛</b> — 어느 臟?", "肝", ["肝","心","脾","肺"], "肝氣鬱結(鬱於本經). 情志不舒·惱怒傷肝. 〔五臟辨證表解·肝〕"],
+ ["<b>心悸·失眠·健忘·多夢, 面色不華</b> — ?", "心", ["心","肝","脾","腎"], "心血虛(失血/生化不足 → 心失所養)."],
+ ["<b>面色萎黃·食慾不振·食後脘腹脹滿·便溏</b> — ?", "脾", ["脾","胃","肝","腎"], "脾氣虛(脾氣虛弱 脾失健運)."],
+ ["<b>咳喘·痰稀色白·鼻塞淸涕, 口不渴</b> — ?", "肺", ["肺","脾","腎","心"], "風寒束肺(肺氣不宣 表衛不固)."],
+ ["<b>腰膝酸軟·形寒肢冷·陽痿, 夜尿多</b> — ?", "腎", ["腎","脾","肝","膀胱"], "腎陽虛衰(氣血運化無力)."],
+ ["<b>頭痛·眩暈·面紅目赤·口苦, 易怒</b> — ?", "肝", ["肝","心","膽","胃"], "肝火上炎(氣鬱化火)."],
+ ["<b>脘腹隱痛·喜溫喜按·口泛淸水, 便溏</b> — ?", "脾", ["脾","胃","腎","肝"], "脾胃虛寒(脾胃陽虛 → 寒狀)."]
+];
+
+// R4 · 治則 立法 : 病性 → 치칙
+var R4_CHIKCHEUK = [
+ ["<b>正氣虛가 주(邪氣 輕)</b> — 治則?", "扶正(補)", ["扶正(補)","祛邪(瀉)","通因通用","急則治標"], "虛者補之. 扶正=正氣를 도와 邪를 몰아냄."],
+ ["<b>邪氣盛이 주(正氣 未衰)</b> — ?", "祛邪(瀉)", ["扶正(補)","祛邪(瀉)","塞因塞用","緩則治本"], "實者瀉之. 祛邪=邪氣를 없애 正을 보존."],
+ ["<b>眞熱假寒</b>(裏眞熱·外假寒) — 反治 중?", "寒因寒用", ["熱因熱用","寒因寒用","塞因塞用","通因通用"], "假寒이므로 寒涼藥으로 眞熱을 治 = 寒因寒用(從治)."],
+ ["<b>眞寒假熱</b>(裏眞寒·外假熱) — ?", "熱因熱用", ["熱因熱用","寒因寒用","塞因塞用","通因通用"], "假熱이므로 溫熱藥으로 眞寒을 治 = 熱因熱用."],
+ ["<b>標病이 急</b>(本이 重해도 먼저) — ?", "急則治標", ["急則治標","緩則治本","標本同治","正治"], "急則治其標. 예: 大出血·二便不通 등 응급."],
+ ["<b>陰虛(陰液 부족)</b> — 治法 원칙?", "壯水之主以制陽光", ["壯水之主以制陽光","益火之源以消陰翳","寒者熱之","通因通用"], "陰虛=滋陰(壯水之主). 王冰. (陽虛=益火之源)"],
+ ["<b>陽虛(陽氣 부족)</b> — ?", "益火之源以消陰翳", ["壯水之主以制陽光","益火之源以消陰翳","熱者寒之","塞因塞用"], "陽虛=溫陽(益火之源以消陰翳)."]
+];
+
+// R5 · 處方 선택(변별) : 證+변주 → 대표방 — 핵심 게임
+var R5_CHEOBANG = [
+ ["<b>太陽病 表實</b> — 無汗·身疼·脈浮緊 → ?", "麻黃湯", ["麻黃湯","桂枝湯","五苓散","小柴胡湯"], "表實(傷寒)=辛溫解表 麻黃湯. 〔六經辨證略圖〕"],
+ ["<b>太陽病 表虛</b> — 有汗·惡風·脈浮緩 → ?", "桂枝湯", ["麻黃湯","桂枝湯","白虎湯","理中丸"], "表虛(中風)=調和營衛 桂枝湯. (汗 유무가 변별축)"],
+ ["<b>太陽 蓄水證</b> — 小便不利·小腹滿 → ?", "五苓散", ["桃仁承氣湯","五苓散","大承氣湯","桂枝湯"], "蓄水(熱邪膀胱氣分)=通陽行水 五苓散. (蓄血=桃仁承氣湯)"],
+ ["<b>陽明 經證</b> — 大熱·大汗·大渴·脈洪大 → ?", "白虎湯", ["白虎湯","大承氣湯","小柴胡湯","淸營湯"], "經證(裏熱)=淸法 白虎湯(石膏知母湯)."],
+ ["<b>陽明 腑證</b> — 日晡潮熱·譫語·腹脹拒按·便秘 → ?", "大承氣湯", ["白虎湯","大承氣湯","理中丸","桂枝湯"], "腑證(裏實)=攻下 大承氣湯(大黃·厚朴·枳實·芒硝)."],
+ ["<b>少陽病</b> — 寒熱往來·胸脇苦滿·口苦咽乾 → ?", "小柴胡湯", ["麻黃湯","小柴胡湯","白虎湯","四逆湯"], "半表半裏=和解 小柴胡湯."],
+ ["<b>太陰病</b> — 腹滿而吐·自利·口不渴·脈緩弱 → ?", "理中丸", ["理中丸","大承氣湯","桂枝湯","烏梅丸"], "脾胃虛寒=溫中健脾 理中丸(人蔘·乾薑·甘草·白朮)."],
+ ["<b>少陰 虛寒</b> — 畏寒·下利淸穀·脈微但欲寐 → ?", "四逆湯", ["四逆湯","黃連阿膠湯","白虎湯","五苓散"], "虛寒=回陽救逆 四逆湯(甘草·乾薑·附子)."],
+ ["<b>少陰 虛熱</b> — 心煩不眠·舌尖紅絳·脈細數 → ?", "黃連阿膠湯", ["四逆湯","黃連阿膠湯","理中丸","桂枝湯"], "虛熱=滋陰淸熱 黃連阿膠湯. (같은 少陰이라도 寒化/熱化로 갈림)"],
+ ["<b>厥陰病</b> — 上熱下寒·消渴·氣上撞心·吐蛔 → ?", "烏梅丸", ["烏梅丸","四逆湯","小柴胡湯","白虎湯"], "寒熱錯雜=淸上溫下 烏梅丸."],
+ ["<b>衛分證 風熱</b> — 發熱·微惡風寒·咽痛 → ?", "銀翹散", ["銀翹散","白虎湯","淸營湯","大承氣湯"], "衛分挾風=辛凉解表 銀翹散(咳 위주면 桑菊飮)."],
+ ["<b>營分證</b> — 舌絳·心煩·夜寐不安 → ?", "淸營湯", ["銀翹散","淸營湯","犀角地黃湯","白虎湯"], "營分=淸營(透熱轉氣) 淸營湯."],
+ ["<b>血分證 實熱</b> — 舌深絳·發斑疹·神昏 → ?", "犀角地黃湯", ["淸營湯","犀角地黃湯","加減復脈湯","銀翹散"], "血分實熱=涼血散血 犀角地黃湯. (虛熱=加減復脈湯)"]
+];
+
+/* ============================ DATA · 시험 모드 (Lv1~Lv5) ============================ */
+
+// Lv1 · 암기 매칭 (證型·治法 ↔ 代表方·適應)
+var E1_AMGI = [
+ [ ["太陽 傷寒(表實)","麻黃湯"],["太陽 中風(表虛)","桂枝湯"],["陽明 經證","白虎湯"],["陽明 腑證","大承氣湯"],
+   ["少陽病","小柴胡湯"],["太陰病","理中丸"],["少陰 虛寒","四逆湯"],["厥陰病","烏梅丸"] ],
+ [ ["衛分證","銀翹散"],["氣分證(大熱)","白虎湯"],["營分證","淸營湯"],["血分證","犀角地黃湯"] ],
+ [ ["汗法","表證"],["吐法","痰食停上脘"],["下法","裏實積滯"],["和法","半表半裏(少陽)"],
+   ["溫法","裏寒證"],["淸法","裏熱證"],["補法","虛證"],["消法","積聚痞塊"] ]
+];
+
+// Lv2 · 변별 (인접오염 — 인접 후보 한 곳만 치환)
+var E2_BYUNBYEOL = [
+ ["<b>肝陽化風</b>의 病機로 옳은 것은?", "陰虛陽亢 肝風內動", ["陰虛陽亢 肝風內動","熱邪熾盛 燔灼肝絡","肝血虛衰 不能濡養筋脈","寒邪侵襲肝脈"], "肝陽化風=陰虛陽亢. (熱極生風=熱邪熾盛 / 血虛生風=肝血虛衰)"],
+ ["<b>熱極生風</b>의 病機는?", "熱邪熾盛 燔灼肝絡", ["陰虛陽亢 肝風內動","熱邪熾盛 燔灼肝絡","肝血虛衰 不能濡養","氣鬱化火"], "熱極生風=熱邪熾盛 燔灼肝絡 熱陷心包. 高熱神昏抽搐."],
+ ["<b>傷寒</b>의 感受經絡으로 옳은 것은?", "邪多先襲足太陽膀胱經", ["邪多先襲足太陽膀胱經","邪多先襲手太陰肺經","邪多先襲足陽明胃經","邪多先襲手厥陰心包"], "傷寒=足太陽膀胱經(易傷陽). 溫病=手太陰肺經(易傷陰)."],
+ ["<b>氣分證</b>의 舌象으로 옳은 것은?", "舌紅·苔黃", ["舌邊尖紅·苔薄白","舌紅·苔黃","舌絳·無苔","舌深絳"], "氣分=舌紅苔黃. (衛分=舌邊尖紅苔薄白 / 營分=舌絳 / 血分=舌深絳)"],
+ ["<b>亡陽</b>의 汗으로 옳은 것은?", "汗凉", ["汗多而粘","汗凉","無汗","汗出如珠"], "亡陽=汗凉(陽氣將絶). 亡陰=汗多而粘(陰氣將絶)."],
+ ["<b>脾不統血</b>의 病機는?", "脾氣虛弱 不能統攝血液", ["脾氣虛弱 不能統攝血液","脾陽虛衰 寒象뚜렷","脾失健運 水濕停留","脾濕胃熱 濕熱交阻"], "脾不統血=脾氣虛弱 → 統攝失職 → 各種出血."],
+ ["<b>太陽 蓄血證</b>의 病機는?", "熱邪膀胱血分侵入", ["熱邪膀胱氣分侵入","熱邪膀胱血分侵入","寒邪壅盛 陽氣被遏","胃腸實熱 燥結"], "蓄血=熱邪 膀胱血分(或狂或發狂, 桃仁承氣湯). 蓄水=氣分(五苓散)."]
+];
+
+// Lv3 · 가나다 묶음 (옳은 조합)
+var E3_MUKEUM = [
+ ["<b>傷寒</b>에 해당하는 것을 모두 고르면? ㄱ.感受寒邪 ㄴ.易于傷陰 ㄷ.惡寒重·發熱較輕 ㄹ.初起 舌邊尖紅", "ㄱ, ㄷ", ["ㄱ, ㄷ","ㄱ, ㄴ","ㄴ, ㄹ","ㄷ, ㄹ"], "ㄴ(傷陰)·ㄹ(舌邊尖紅)은 溫病. 傷寒=感受寒邪·惡寒重·易傷陽·舌正常. 〔傷寒/溫病 區別〕"],
+ ["<b>衛分證</b>의 특징 묶음으로 옳은 것은? ㄱ.發熱·微惡風寒 ㄴ.舌絳 ㄷ.脈浮數 ㄹ.神昏譫語", "ㄱ, ㄷ", ["ㄱ, ㄷ","ㄱ, ㄴ","ㄴ, ㄹ","ㄷ, ㄹ"], "ㄴ(舌絳)·ㄹ(神昏譫語)=營分. 衛分=發熱微惡風寒·脈浮數."],
+ ["<b>正治(逆治)</b>에 해당하는 것 묶음? ㄱ.寒者熱之 ㄴ.熱因熱用 ㄷ.虛則補之 ㄹ.通因通用", "ㄱ, ㄷ", ["ㄱ, ㄷ","ㄴ, ㄹ","ㄱ, ㄴ","ㄷ, ㄹ"], "ㄴ·ㄹ=反治(從治). 正治=寒者熱之·熱者寒之·虛則補之·實則瀉之."],
+ ["<b>三焦辨證 上焦</b>에 배속되는 臟腑 묶음? ㄱ.肺 ㄴ.心包 ㄷ.胃 ㄹ.腎", "ㄱ, ㄴ", ["ㄱ, ㄴ","ㄱ, ㄷ","ㄷ, ㄹ","ㄴ, ㄹ"], "上焦=手太陰肺·手厥陰心包. 中焦=胃·脾, 下焦=腎·肝. (溫病條辨)"],
+ ["<b>反治(從治)</b> 묶음으로 옳은 것은? ㄱ.熱因熱用 ㄴ.寒者熱之 ㄷ.塞因塞用 ㄹ.通因通用", "ㄱ, ㄷ, ㄹ", ["ㄱ, ㄷ, ㄹ","ㄱ, ㄴ, ㄷ","ㄴ, ㄷ, ㄹ","ㄱ, ㄴ, ㄹ"], "反治 4종=熱因熱用·寒因寒用·塞因塞用·通因通用. ㄴ(寒者熱之)=正治."],
+ ["<b>裏證</b> 공통 특징 묶음? ㄱ.脈浮 ㄴ.病位 깊음 ㄷ.舌苔 변화 뚜렷 ㄹ.惡寒發熱 並見", "ㄴ, ㄷ", ["ㄴ, ㄷ","ㄱ, ㄹ","ㄱ, ㄷ","ㄴ, ㄹ"], "ㄱ(脈浮)·ㄹ(惡寒發熱 並見)=表證. 裏證은 病位 깊고 舌苔 변화 현저."]
+];
+
+// Lv4 · 역추론 (증상서술 → 정확 證型)
+var E4_YEOKCHURON = [
+ ["<b>突然昏仆·人事不省·牙關緊急·口噤不開, 兼 身熱面赤·氣粗·躁擾不寧</b> — ?", "痰閉心竅·陽閉", ["痰閉心竅·陽閉","痰閉心竅·陰閉","脫證","痰迷心竅"], "陽閉=熱象(身熱面赤氣粗躁擾). 陰閉=面垢脣靑·靜臥·痰盛肢冷."],
+ ["<b>意識不淸·自言自語·神志錯亂·目滯神呆·喉中痰鳴</b> — ?", "痰迷心竅", ["痰火擾心","痰迷心竅","邪犯心包","心血瘀阻"], "痰迷心竅=濕痰上蒙淸竅. 痰火擾心은 狂躁·打人罵人 양상."],
+ ["<b>面目發黃·橘色처럼 宣明·厭油膩·尿少而赤·苔黃膩</b> — ?", "濕熱傷脾(陽黃)", ["寒濕困脾(陰黃)","濕熱傷脾(陽黃)","脾陽虛","脾不統血"], "宣明(밝은 귤색)=陽黃(濕熱). 어두운 黃=陰黃(寒濕)."],
+ ["<b>脘腹脹悶·納呆·頭重如裹·大便溏泄·皮膚暗黃</b> — ?", "寒濕困脾(陰黃)", ["濕熱傷脾(陽黃)","寒濕困脾(陰黃)","中氣下陷","脾虛水腫"], "暗黃(陰黃)·口淡粘膩·喜熱飮=寒濕困脾."],
+ ["<b>眩暈欲仆·頭痛如劈·肢麻震顫·言語不利·半身不遂</b> — ?", "肝陽化風", ["肝陽化風","熱極生風","血虛生風","寒滯肝脈"], "肝陽化風=陰虛陽亢. 中風 양상(半身不遂)."],
+ ["<b>高熱·神昏·抽搐·角弓反張</b> — ?", "熱極生風", ["肝陽化風","熱極生風","血虛生風","肝火上炎"], "熱極生風=熱邪熾盛 燔灼肝絡 熱陷心包."],
+ ["<b>心悸·心下逆滿·氣上衝胸·咳嗽·吐稀白痰</b> — ?", "水氣凌心", ["心血瘀阻","水氣凌心","心陰虛","痰火擾心"], "水氣凌心(兼肺脾氣虛)=水飮停胸脇 上逆凌心."]
+];
+
+// Lv5 · 함정·직관배반 (복합선지·異說)
+var E5_HAMJEONG = [
+ ["<b>亡陰</b>의 脈으로 옳은 것은? (亡陽과 혼동 주의)", "數而無力", ["數而無力","脈微欲絶","浮緊","沈實有力"], "亡陰=數而無力(陰氣將絶). 亡陽=脈微欲絶(陽氣將絶). 둘 다 위급이나 脈이 갈림."],
+ ["<b>溫病條辨 三焦辨證</b>에서 中焦의 <b>燥化</b>(裏熱燥實)를 담당하는 것은?", "足陽明胃", ["足陽明胃","足太陰脾","手太陰肺","足少陰腎"], "中焦에서 胃=燥化(裏熱), 脾=濕化(濕溫). 이 갈림이 변별축."],
+ ["<b>入營</b>의 治法 '透熱轉氣'의 의미로 옳은 것은?", "營分熱을 氣分으로 透出시켜 淸함", ["營分熱을 氣分으로 透出시켜 淸함","營分에서 바로 涼血散血","營分을 곧장 攻下","發汗으로 透邪"], "入營猶可透熱轉氣(犀角·玄參·羚羊角). 涼血散血은 入血의 治法."],
+ ["<b>塞因塞用</b>의 적응으로 옳은 것은?", "眞虛에 의한 假塞(예: 脾虛 腹脹)", ["眞虛에 의한 假塞(예: 脾虛 腹脹)","眞實에 의한 脹滿","食積 腹脹","熱結 便秘"], "塞因塞用=補法으로 假塞(眞虛)을 治. 眞實 脹滿이면 通因通用·消導."],
+ ["<b>少陰病</b> 중 '虛寒爲主(陽虛陰盛)'가 극심하면 나타나는 것은?", "格陽·戴陽", ["格陽·戴陽","蓄血","結胸","痞證"], "少陰 虛寒 극심 → 格陽(裏寒外熱)·戴陽(面赤). 〔六經辨證略圖·少陰〕"],
+ ["다음 중 옳은 설명은?", "厥陰病은 上熱下寒이 錯雜하여 淸上溫下(烏梅丸)한다", ["厥陰病은 上熱下寒이 錯雜하여 淸上溫下(烏梅丸)한다","太陰病은 裏熱實이라 攻下한다","少陽病은 表證이라 發汗한다","陽明 經證은 攻下가 원칙이다"], "太陰=裏虛寒(溫中), 少陽=半表半裏(和解), 陽明 經證=淸法. 厥陰만 정답."]
+];
+
+/* ============================ 귀속 태그 + 오답 통계 ============================ */
+function tagAll(arr, f){ arr.forEach(function(q,i){ q[4]=f(i); }); }
+tagAll(R1_SAJIN, function(){ return '舌脈→證'; });
+tagAll(R2_PALGANG, function(i){ return i===4?'八綱-한열': i>=5?'八綱-허실':'八綱 종합귀속'; });
+tagAll(R3_JANGBU, function(){ return '臟腑 정위'; });
+tagAll(R4_CHIKCHEUK, function(i){ return i<2?'扶正祛邪': i<4?'反治 정의':'治則 기타'; });
+tagAll(R5_CHEOBANG, function(i){ return i<10?'六經 방제변별':'衛氣營血 방제'; });
+tagAll(E2_BYUNBYEOL, function(i){ return ['證型 미세변별','證型 미세변별','傷寒溫病 변별','衛氣營血 귀속','亡陰亡陽 변별','病機 귀속','病機 귀속'][i]; });
+tagAll(E3_MUKEUM, function(i){ return ['傷寒溫病 변별','衛氣營血 귀속','正治反治 정의','三焦 배속','正治反治 정의','八綱-표리'][i]; });
+tagAll(E4_YEOKCHURON, function(){ return '證型 미세변별'; });
+tagAll(E5_HAMJEONG, function(i){ return ['亡陰亡陽 변별','三焦 배속','治法 정의','反治 정의','六經(少陰)','六經 治法'][i]; });
+var E1_TAGS=['六經↔方','衛氣營血↔方','八法↔適應'];
+
+var SKEY='bj_stats_v1';
+function blankStats(){ return {byQ:{}, byCat:{}, started:Date.now()}; }
+var STATS=(function(){ try{ var s=window.localStorage.getItem(SKEY); if(s){ var o=JSON.parse(s); if(o&&o.byQ&&o.byCat) return o; } }catch(e){} return blankStats(); })();
+function saveStats(){ try{ window.localStorage.setItem(SKEY, JSON.stringify(STATS)); }catch(e){} }
+function bumpCat(cat, missed){ if(!cat)cat='기타'; var C=STATS.byCat[cat]; if(!C){C={att:0,miss:0}; STATS.byCat[cat]=C;} C.att++; if(missed)C.miss++; }
+function recordQ(qid, cat, qTuple, wrongPicks){
+  if(!cat) cat='기타';
+  var Q=STATS.byQ[qid]; if(!Q){ Q={cat:cat, att:0, miss:0, picks:{}, q:qTuple}; STATS.byQ[qid]=Q; }
+  Q.att++; Q.cat=cat; if(qTuple) Q.q=qTuple;
+  var missed=!!(wrongPicks&&wrongPicks.length);
+  if(missed){ Q.miss++; wrongPicks.forEach(function(w){ Q.picks[w]=(Q.picks[w]||0)+1; }); }
+  bumpCat(cat, missed); saveStats();
+}
+function missedTuples(){ var out=[]; Object.keys(STATS.byQ).forEach(function(id){ var Q=STATS.byQ[id]; if(Q.miss>0&&Q.q){ var t=Q.q.slice(); t[5]=id; out.push(t); } }); return out; }
+
+/* ============================ MODE / TAB CONFIG ============================ */
+var TABS_REASON = [
+ {n:"1 · 四診",label:"舌·脈 변별",title:"四診 — 舌象·脈象으로 證 잡기", type:"pick", data:R1_SAJIN,
+  hint:"舌·脈만 보고 어느 證(衛氣營血·한열허실)인지 고르기. 진단의 출발점."},
+ {n:"2 · 八綱",label:"표리한열허실",title:"八綱 귀속 — 증상을 8강으로", type:"pick", data:R2_PALGANG,
+  hint:"증상을 보고 表裏·寒熱·虛實 어디에 귀속되는지. 拒按/喜按, 汗 유무가 변별축."},
+ {n:"3 · 臟腑",label:"病性 정위",title:"臟腑·病性 정위 — 어느 臟인가", type:"pick", data:R3_JANGBU,
+  hint:"증상群을 보고 병든 臟을 역추론. 五臟辨證表解를 거꾸로 사용."},
+ {n:"4 · 治則",label:"立法",title:"治則 立法 — 病性에서 치칙으로", type:"pick", data:R4_CHIKCHEUK,
+  hint:"扶正/祛邪·正治/反治·治標/治本·조정음양. 病性이 정해지면 立法."},
+ {n:"5 · 處方",label:"變別 처방",title:"處方 선택 — 證+變奏로 方 고르기 ★", type:"pick", data:R5_CHEOBANG,
+  hint:"같은 經/分證이라도 兼表/寒化/熱化에 따라 方이 갈린다. 단일매칭이 아닌 변별."}
+];
+var TABS_EXAM = [
+ {n:"Lv1",label:"암기 매칭",title:"Lv1 · 암기 매칭 (證·法 ↔ 方·適應)", type:"connect", data:E1_AMGI,
+  lh:"證型·治法", rh:"代表方·適應", cats:E1_TAGS, hint:"六經↔主方 → 衛氣營血↔代表方 → 八法↔適應. 3라운드 기초 인출."},
+ {n:"Lv2",label:"변별",title:"Lv2 · 변별 (인접오염)", type:"pick", data:E2_BYUNBYEOL,
+  hint:"證型 정의에서 인접 후보 한 곳만 비튼 오답 가려내기. 방향·귀속 변별."},
+ {n:"Lv3",label:"가나다 묶음",title:"Lv3 · 가나다 묶음 (옳은 조합)", type:"pick", data:E3_MUKEUM,
+  hint:"ㄱㄴㄷㄹ 중 옳은 것만 묶기. 한 개념의 여러 속성을 통합 변별."},
+ {n:"Lv4",label:"역추론",title:"Lv4 · 역추론 (증상 → 證型)", type:"pick", data:E4_YEOKCHURON,
+  hint:"증상 서술만 보고 정확한 證型 지목. 陽閉/陰閉, 陽黃/陰黃 등 미세 변별."},
+ {n:"Lv5",label:"함정·직관배반",title:"Lv5 · 함정 · 직관배반", type:"pick", data:E5_HAMJEONG,
+  hint:"亡陰亡陽 脈·三焦 배속·透熱轉氣·반치 등 헷갈리는 최고난도. 복합선지."}
+];
+var MODES = [
+ {key:"reason", name:"추론 모드", ms:"四診→八綱→臟腑→治則→處方", sub:"한 케이스가 진단 흐름 5단계를 통과 — 임상가처럼 사고하는 추론 훈련", tabs:TABS_REASON},
+ {key:"exam", name:"시험 모드", ms:"Lv1 암기 → Lv5 함정", sub:"기초 암기부터 직관배반 함정까지 — 난이도 사다리를 차례로 정복", tabs:TABS_EXAM}
+];
+
+/* ============================ STATE / HELPERS ============================ */
+var totalMatched=0;
+function addScore(n){ totalMatched+=n; var s=document.getElementById('score'); if(s) s.textContent='맞춤 '+totalMatched; }
+function el(t,c,h){ var e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function flash(n){ if(!n)return; n.classList.add('flash'); setTimeout(function(){ if(n)n.classList.remove('flash'); },320); }
+function hzCard(t){ var c=el('div','card'); c.innerHTML='<span class="hz">'+t+'</span>'; return c; }
+
+/* ============================ ENGINES ============================ */
+function ConnectGame(panel, rounds, lh, rh, onDone, meta){
+  meta=meta||{};
+  function catFor(i){ return (meta.cats&&meta.cats[i])||meta.tl||'매칭'; }
+  var board=panel.querySelector('.board'), reveal=panel.querySelector('.reveal');
+  var nextBtn=panel.querySelector('.btn-next'), prog=panel.querySelector('.gprog');
+  if(!board||!nextBtn) return;
+  var ri=0, sel=null, lockedInRound=0, totalPairs=0, donePairs=0;
+  rounds.forEach(function(r){ totalPairs+=r.length; });
+  function updProg(){ if(prog) prog.textContent='라운드 '+(ri+1)+' / '+rounds.length+'  ·  맞춘 짝 '+donePairs+' / '+totalPairs; }
+  function renderRound(){
+    sel=null; lockedInRound=0;
+    if(reveal){ reveal.classList.remove('show'); reveal.innerHTML=''; }
+    nextBtn.classList.remove('show');
+    var pairs=rounds[ri];
+    var lefts=pairs.map(function(p,i){ return {t:p[0],i:i}; });
+    var rights=pairs.map(function(p,i){ return {t:p[1],i:i,rev:p[2]||''}; });
+    shuffle(rights);
+    board.innerHTML='';
+    var wrap=el('div','connect-wrap'), colL=el('div','col'), colR=el('div','col');
+    colL.appendChild(el('div','col-h',lh||'')); colR.appendChild(el('div','col-h',rh||''));
+    lefts.forEach(function(L){ var c=hzCard(L.t); c.dataset.idx=L.i; c.dataset.side='L';
+      c.addEventListener('click',function(){ pick(c,'L',L.i,''); }); colL.appendChild(c); });
+    rights.forEach(function(R){ var c=hzCard(R.t); c.dataset.idx=R.i; c.dataset.side='R'; c.dataset.rev=R.rev;
+      c.addEventListener('click',function(){ pick(c,'R',R.i,R.rev); }); colR.appendChild(c); });
+    wrap.appendChild(colL); wrap.appendChild(colR); board.appendChild(wrap); updProg();
+  }
+  function pick(c,side,idx,rev){
+    if(c.classList.contains('locked')) return;
+    if(!sel){ sel={c:c,side:side,idx:idx,rev:rev}; c.classList.add('sel'); return; }
+    if(sel.side===side){ sel.c.classList.remove('sel'); if(sel.c===c){ sel=null; return; }
+      sel={c:c,side:side,idx:idx,rev:rev}; c.classList.add('sel'); return; }
+    if(sel.idx===idx){
+      sel.c.classList.remove('sel'); sel.c.classList.add('locked'); c.classList.add('locked');
+      var r=rev||sel.rev||''; if(reveal&&r){ reveal.innerHTML='<b>✓</b> '+r; reveal.classList.add('show'); }
+      sel=null; lockedInRound++; donePairs++; addScore(1); bumpCat(catFor(ri), false); saveStats(); updProg();
+      if(lockedInRound===rounds[ri].length){ nextBtn.textContent=(ri<rounds.length-1)?'다음 라운드 →':'다음 게임 →'; nextBtn.classList.add('show'); }
+    } else { bumpCat(catFor(ri), true); saveStats(); flash(sel.c); flash(c); sel.c.classList.remove('sel'); sel=null; }
+  }
+  nextBtn.addEventListener('click',function(){ if(ri<rounds.length-1){ ri++; renderRound(); } else { onDone(); } });
+  renderRound();
+}
+
+function OrderGame(panel, sets, onDone){
+  var board=panel.querySelector('.board'), gsub=panel.querySelector('.gsub');
+  var reveal=panel.querySelector('.reveal'), nextBtn=panel.querySelector('.btn-next'), prog=panel.querySelector('.gprog');
+  if(!board||!nextBtn) return;
+  var si=0;
+  function renderSet(){
+    if(reveal){ reveal.classList.remove('show'); reveal.innerHTML=''; }
+    nextBtn.classList.remove('show');
+    var s=sets[si], next=0;
+    if(gsub) gsub.textContent=s.title;
+    if(prog) prog.textContent='세트 '+(si+1)+' / '+sets.length;
+    board.innerHTML='';
+    var grid=el('div','order-grid');
+    var order=s.items.map(function(t,i){ return {t:t,i:i}; });
+    var shown=order.slice(); shuffle(shown);
+    shown.forEach(function(o){ var c=el('div','ocard'); c.innerHTML='<span class="ord"></span>'+o.t;
+      c.addEventListener('click',function(){
+        if(c.classList.contains('locked')) return;
+        if(o.i===next){ c.classList.add('locked'); next++; var b=c.querySelector('.ord'); if(b)b.textContent=next; addScore(1);
+          if(next===s.items.length){ if(reveal){ reveal.innerHTML='<b>✓</b> '+s.reveal; reveal.classList.add('show'); }
+            nextBtn.textContent=(si<sets.length-1)?'다음 세트 →':'다음 게임 →'; nextBtn.classList.add('show'); } }
+        else { flash(c); }
+      }); grid.appendChild(c); });
+    board.appendChild(grid);
+  }
+  nextBtn.addEventListener('click',function(){ if(si<sets.length-1){ si++; renderSet(); } else { onDone(); } });
+  renderSet();
+}
+
+function PickGame(panel, qs, onDone, meta){
+  meta=meta||{};
+  var board=panel.querySelector('.board'), reveal=panel.querySelector('.reveal');
+  var nextBtn=panel.querySelector('.btn-next'), prog=panel.querySelector('.gprog');
+  if(!board||!nextBtn) return;
+  var qi=0;
+  function renderQ(){
+    if(reveal){ reveal.classList.remove('show'); reveal.innerHTML=''; }
+    nextBtn.classList.remove('show');
+    var q=qs[qi];
+    if(prog) prog.textContent='문제 '+(qi+1)+' / '+qs.length;
+    board.innerHTML='';
+    var qd=el('div','pick-q'); qd.innerHTML='<span class="hz">Q'+(qi+1)+'.</span> '+q[0]; board.appendChild(qd);
+    var wrap=el('div','opts'), opts=q[2].slice(); shuffle(opts); var answered=false, wrongThis=[];
+    opts.forEach(function(o){ var b=el('button','opt'); b.type='button'; b.textContent=o;
+      b.addEventListener('click',function(){
+        if(answered||b.disabled) return;
+        if(o===q[1]){ b.classList.add('ok'); answered=true; addScore(1);
+          var qid=q[5]||((meta.mk||'?')+'/'+(meta.tl||'?')+'#'+qi);
+          recordQ(qid, q[4]||meta.tl, [q[0],q[1],q[2],q[3],q[4]], wrongThis.slice());
+          Array.prototype.forEach.call(wrap.children,function(x){ x.disabled=true; });
+          if(reveal){ reveal.innerHTML='<b>✓ '+q[1]+'</b> — '+q[3]; reveal.classList.add('show'); }
+          nextBtn.textContent=(qi<qs.length-1)?'다음 문제 →':'다음 게임 →'; nextBtn.classList.add('show'); }
+        else { b.classList.add('no'); b.disabled=true; wrongThis.push(o); }
+      }); wrap.appendChild(b); });
+    board.appendChild(wrap);
+  }
+  nextBtn.addEventListener('click',function(){ if(qi<qs.length-1){ qi++; renderQ(); } else { onDone(); } });
+  renderQ();
+}
+
+/* ============================ HUB CONTROLLER ============================ */
+var tabsEl=document.getElementById('tabs'), mainEl=document.getElementById('main');
+var modebarEl=document.getElementById('modebar'), subEl=document.getElementById('subline');
+var TABS=[], panels=[], inited=[], curMode=-1, digestBtn=null;
+
+function buildTab(cfg, idx){
+  var t=el('div','tab'+(curMode===1?' examtab':'')); t.innerHTML='<span class="n">'+cfg.n+'</span>'+cfg.label;
+  t.addEventListener('click',function(){ show(idx); }); tabsEl.appendChild(t);
+  var p=el('section','panel');
+  var hintHtml=(cfg.type==='order')?'<div class="ghint">'+cfg.hint+'</div><div class="ghint gsub"></div>':'<div class="ghint">'+cfg.hint+'</div>';
+  p.innerHTML='<div class="gtitle">'+cfg.title+'</div>'+hintHtml+'<div class="gprog"></div><div class="board"></div><div class="reveal"></div>'+
+    '<div class="nextbar"><button type="button" class="btn-next">다음 →</button></div>';
+  mainEl.appendChild(p); panels.push(p);
+}
+function initPanel(idx){
+  if(inited[idx]) return; inited[idx]=true;
+  var cfg=TABS[idx], p=panels[idx];
+  var onDone=function(){ show((idx+1)%TABS.length); };
+  var meta={mk:(MODES[curMode]&&MODES[curMode].key)||'?', tl:cfg.label, cats:cfg.cats};
+  if(cfg.type==='connect') ConnectGame(p, cfg.data, cfg.lh, cfg.rh, onDone, meta);
+  else if(cfg.type==='order') OrderGame(p, cfg.data, onDone);
+  else if(cfg.type==='pick') PickGame(p, cfg.data, onDone, meta);
+}
+function show(idx){
+  panels.forEach(function(p,i){ p.classList.toggle('active', i===idx); });
+  Array.prototype.forEach.call(tabsEl.children,function(t,i){ t.classList.toggle('active', i===idx); });
+  initPanel(idx); if(window.scrollTo) window.scrollTo(0,0);
+}
+function loadMode(m){
+  if(m===curMode) return;
+  curMode=m; TABS=MODES[m].tabs;
+  tabsEl.style.display=''; if(digestBtn) digestBtn.classList.remove('active');
+  tabsEl.innerHTML=''; mainEl.innerHTML=''; panels=[]; inited=[];
+  Array.prototype.forEach.call(modebarEl.children,function(b,i){
+    b.classList.toggle('active', i===m); b.classList.toggle('exam', i===1); });
+  if(subEl) subEl.textContent=MODES[m].sub;
+  TABS.forEach(buildTab); show(0);
+}
+MODES.forEach(function(M,i){
+  var b=el('button','modebtn'+(i===1?' exam':'')); b.type='button';
+  b.innerHTML=M.name+'<span class="ms">'+M.ms+'</span>';
+  b.addEventListener('click',function(){ loadMode(i); }); modebarEl.appendChild(b);
+});
+digestBtn=el('button','modebtn digest'); digestBtn.type='button';
+digestBtn.innerHTML='약점 다이제스트<span class="ms">반복 오답·귀속 자동 분석</span>';
+digestBtn.addEventListener('click', showDigest); modebarEl.appendChild(digestBtn);
+
+function autoSummary(cats,qs,acc){
+  var worst=cats.filter(function(c){return c.miss>0;}).slice(0,3);
+  var s='현재 정답률 <b>'+acc+'%</b>. ';
+  if(worst.length){ s+='가장 약한 귀속은 '+worst.map(function(c){return '<b>'+c.k+'</b>('+c.rate+'%)';}).join(', ')+'. '; }
+  var conf=qs.slice(0,3).map(function(x){ var p=Object.keys(x.picks).sort(function(a,b){return x.picks[b]-x.picks[a];})[0]; return p?(((x.q&&x.q[1])||'')+'를 “'+p+'”로 혼동'):''; }).filter(Boolean);
+  if(conf.length) s+='대표 혼동 — '+conf.join('; ')+'. ';
+  if(worst[0]) s+='→ <b>'+worst[0].k+'</b> 집중 복습 권장.';
+  return s;
+}
+function renderDigestHTML(){
+  var cats=Object.keys(STATS.byCat).map(function(k){var c=STATS.byCat[k]; return {k:k,att:c.att,miss:c.miss,rate:c.att?Math.round(c.miss/c.att*100):0};});
+  var totAtt=0,totMiss=0; cats.forEach(function(c){totAtt+=c.att; totMiss+=c.miss;});
+  if(totAtt===0){ return '<div class="digest-view"><div class="gtitle">약점 다이제스트</div><div class="dempty">아직 푼 문제가 없습니다.<br>추론·시험 모드에서 문제를 풀면, 여기서 자주 틀리는 <b>귀속(한열·허실·장부·방제·병기 등)</b>과 반복 오답 문항을 모아 자동 정리하고 ‘오답만 복습’을 제공합니다.</div></div>'; }
+  cats.sort(function(a,b){ return b.miss-a.miss || b.rate-a.rate; });
+  var qs=Object.keys(STATS.byQ).map(function(id){var Q=STATS.byQ[id]; return {id:id,cat:Q.cat,miss:Q.miss,att:Q.att,q:Q.q,picks:Q.picks||{}};}).filter(function(x){return x.miss>0;});
+  qs.sort(function(a,b){ return b.miss-a.miss; });
+  var acc=Math.round((totAtt-totMiss)/totAtt*100), nMissed=qs.length;
+  var h='<div class="digest-view"><div class="gtitle">약점 다이제스트</div>';
+  h+='<div class="dsum">총 <b>'+totAtt+'</b>회 시도 · 오답 <b>'+totMiss+'</b>회 · 정답률 <b>'+acc+'%</b> · 반복오답 문항 <b>'+nMissed+'</b>개</div>';
+  h+='<div class="dh">귀속별 오답 — 약한 순</div><div class="dbars">';
+  var anyCat=false;
+  cats.forEach(function(c){ if(c.miss===0) return; anyCat=true; var w=Math.max(6,c.rate);
+    h+='<div class="dbar"><div class="dbar-l"><span class="dcat">'+c.k+'</span><span class="dnum">'+c.miss+'/'+c.att+' ('+c.rate+'%)</span></div><div class="dbar-t"><i style="width:'+w+'%"></i></div></div>'; });
+  if(!anyCat) h+='<div class="dempty">오답이 없습니다. 완벽합니다.</div>';
+  h+='</div>';
+  h+='<div class="dh">반복 오답 문항 — 많이 틀린 순</div><div class="dqs">';
+  if(!qs.length){ h+='<div class="dempty">반복 오답이 아직 없습니다.</div>'; }
+  qs.slice(0,12).forEach(function(x){
+    var picks=Object.keys(x.picks).sort(function(a,b){return x.picks[b]-x.picks[a];});
+    var pickStr=picks.length?picks.map(function(p){return '“'+p+'”×'+x.picks[p];}).join(', '):'—';
+    var qtxt=((x.q&&x.q[0])||'').replace(/<[^>]+>/g,''); var ans=(x.q&&x.q[1])||'';
+    h+='<div class="dq"><div class="dq-top"><span class="dtag">'+x.cat+'</span><span class="dmiss">'+x.miss+'회 오답</span></div><div class="dq-q">'+qtxt+'</div><div class="dq-a">내 오답: <span class="bad">'+pickStr+'</span> &nbsp;→&nbsp; 정답: <span class="good">'+ans+'</span></div></div>'; });
+  h+='</div>';
+  h+='<div class="dh">자동 요약</div><div class="dauto">'+autoSummary(cats,qs,acc)+'</div>';
+  h+='<div class="dbtns"><button type="button" class="dbtn" id="d-review">오답만 복습 ('+nMissed+')</button><button type="button" class="dbtn ghost" id="d-copy">텍스트 복사</button><button type="button" class="dbtn warn" id="d-reset">통계 초기화</button></div></div>';
+  return h;
+}
+function digestText(){
+  var cats=Object.keys(STATS.byCat).map(function(k){var c=STATS.byCat[k]; return {k:k,att:c.att,miss:c.miss,rate:c.att?Math.round(c.miss/c.att*100):0};}).filter(function(c){return c.miss>0;}).sort(function(a,b){return b.miss-a.miss;});
+  var qs=Object.keys(STATS.byQ).map(function(id){return STATS.byQ[id];}).filter(function(Q){return Q.miss>0;}).sort(function(a,b){return b.miss-a.miss;});
+  var totAtt=0,totMiss=0; Object.keys(STATS.byCat).forEach(function(k){totAtt+=STATS.byCat[k].att; totMiss+=STATS.byCat[k].miss;});
+  var acc=totAtt?Math.round((totAtt-totMiss)/totAtt*100):0;
+  var L=['[변증·치칙·치법 약점 다이제스트]','총 '+totAtt+'회 시도 · 오답 '+totMiss+'회 · 정답률 '+acc+'%','','■ 귀속별 오답 (약한 순)'];
+  cats.forEach(function(c){ L.push(' · '+c.k+' : '+c.miss+'/'+c.att+' ('+c.rate+'%)'); });
+  L.push(''); L.push('■ 반복 오답 문항');
+  qs.slice(0,15).forEach(function(Q){ var picks=Object.keys(Q.picks||{}).sort(function(a,b){return Q.picks[b]-Q.picks[a];}); var ps=picks.map(function(p){return '“'+p+'”×'+Q.picks[p];}).join(', '); var qt=((Q.q&&Q.q[0])||'').replace(/<[^>]+>/g,''); L.push(' · ['+Q.cat+'] '+qt); L.push('     내 오답: '+(ps||'—')+' → 정답: '+((Q.q&&Q.q[1])||'')+'  ('+Q.miss+'회)'); });
+  return L.join('\n');
+}
+function copyDigest(){ var t=digestText();
+  try{ if(window.navigator&&window.navigator.clipboard&&window.navigator.clipboard.writeText){ window.navigator.clipboard.writeText(t); }
+    else { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); } }catch(e){}
+  var b=document.getElementById('d-copy'); if(b){ b.textContent='복사됨 ✓'; setTimeout(function(){ if(b)b.textContent='텍스트 복사'; },1500); }
+}
+function wireDigest(){
+  var rv=document.getElementById('d-review'); if(rv) rv.addEventListener('click', startReview);
+  var cp=document.getElementById('d-copy'); if(cp) cp.addEventListener('click', copyDigest);
+  var rs=document.getElementById('d-reset'); if(rs) rs.addEventListener('click', function(){ if(window.confirm('통계를 모두 지울까요?')){ STATS=blankStats(); saveStats(); showDigest(); } });
+}
+function showDigest(){
+  curMode=-1; tabsEl.style.display='none';
+  Array.prototype.forEach.call(modebarEl.children,function(b){ b.classList.remove('active'); });
+  if(digestBtn) digestBtn.classList.add('active');
+  if(subEl) subEl.textContent='반복 오답·귀속 약점 자동 분석 — 틀린 문항만 모아 다시 풀 수 있습니다';
+  mainEl.innerHTML=renderDigestHTML(); wireDigest();
+  if(window.scrollTo) window.scrollTo(0,0);
+}
+function startReview(){
+  var miss=missedTuples(); if(!miss.length){ return; }
+  curMode=-1; tabsEl.style.display='none'; mainEl.innerHTML='';
+  var sec=el('section','panel active');
+  sec.innerHTML='<div class="gtitle">오답 복습</div><div class="ghint">반복 틀린 '+miss.length+'문항을 다시 풉니다. 끝나면 다이제스트로 돌아갑니다.</div><div class="gprog"></div><div class="board"></div><div class="reveal"></div><div class="nextbar"><button type="button" class="btn-next">다음 →</button></div>';
+  mainEl.appendChild(sec); shuffle(miss);
+  PickGame(sec, miss, function(){ showDigest(); }, {mk:'review', tl:'복습'});
+  if(window.scrollTo) window.scrollTo(0,0);
+}
+loadMode(0);
+
+document.addEventListener('keydown',function(e){
+  if(e.code!=='Space' && e.key!==' ') return;
+  var tag=(document.activeElement&&document.activeElement.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  var active=panels.filter(function(p){ return p.classList.contains('active'); })[0];
+  if(!active) return;
+  var btn=active.querySelector('.btn-next.show'); if(btn){ e.preventDefault(); btn.click(); }
+});
+
+window.__HUB__={ MODES:MODES, loadMode:loadMode, show:show, score:function(){ return totalMatched; },
+  curMode:function(){ return curMode; }, tabCount:function(){ return TABS.length; },
+  stats:function(){ return STATS; }, showDigest:showDigest, missed:missedTuples };
+})();
+</script>
+</body>
+</html>
